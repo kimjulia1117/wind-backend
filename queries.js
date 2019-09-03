@@ -65,7 +65,7 @@ const postDataFromSource = (request, response) => {
 }
 
 /*
- * Detect when a new data and replace the current data
+ * Detect when a new data and replace the current data that is being sent
  */
 const updateCurrentData = (request, response) => {
 
