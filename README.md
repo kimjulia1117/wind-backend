@@ -1,7 +1,5 @@
 # wind-backend
-![Express Icon](https://github.com/kimjulia1117/wind-backend/blob/master/icons/express-icon.png)
-![NodeJS Icon](https://github.com/kimjulia1117/wind-backend/blob/master/icons/node-js-icon.png)
-![PostgreSQL Icon](https://github.com/kimjulia1117/wind-backend/blob/master/icons/postgres-icon.jpg)
+<img src="https://github.com/kimjulia1117/wind-backend/blob/master/icons/express-icon.png" height="50" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/kimjulia1117/wind-backend/blob/master/icons/node-js-icon.png" height="100" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="https://github.com/kimjulia1117/wind-backend/blob/master/icons/postgresql-icon.png" height="100" />
 
 Run API:
 ```node index.js```
