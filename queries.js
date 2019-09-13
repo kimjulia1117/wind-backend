@@ -9,7 +9,7 @@ const pool = new Pool({
 
 /* Table format:
  *  wind_data (
-        ref_time timestamp,
+        recorded_time timestamp with time zone,
         header jsonb,
         data decimal[]
     );
@@ -23,14 +23,14 @@ const getAllDataFromDatabase = (request, response) => {
             throw error
         }
         response.status(200).json(results.rows)
-    })
+    });
 }
 
 /*
  * Get the latest available data from the PostgreSQL database
  */
 const getLatestDataFromDatabase = (request, response) => {
-    pool.query("SELECT * FROM wind_data WHERE ref_time = (SELECT MAX(ref_time) FROM wind_data)", (error, results) => {
+    pool.query("SELECT * FROM wind_data WHERE recorded_time = (SELECT MAX(recorded_time) FROM wind_data)", (error, results) => {
         if (error) {
             response.status(404).json({message: error});
             throw error;
@@ -52,23 +52,17 @@ const postDataFromSource = (request, response) => {
     for(var i = 0; i < parseFile.length; i++) {
         header = parseFile[i]["header"];
         dataArray = parseFile[i]["data"];
-        refTime = header["refTime"];
+        recordedTime = parseFile[i]["recordedTime"];
 
-        pool.query("INSERT INTO wind_data VALUES ($1, $2, $3)", [refTime, header, dataArray], (error, results) => {
+        pool.query("INSERT INTO wind_data VALUES ($1, $2, $3)", [recordedTime, header, dataArray], (error, results) => {
             if (error) {
                 response.status(404).json({message: error}); 
                 throw error;
             }
+
         });
     }
     response.status(200).json("POST DATA FROM SOURCE STATUS : OK !");
-}
-
-/*
- * Detect when a new data and replace the current data that is being sent
- */
-const updateCurrentData = (request, response) => {
-
 }
 
 /*
@@ -78,11 +72,24 @@ const flushOldData = (request, response) => {
     pool.query()
 }
 
+/*
+ * Used only for testing purposes
+ */
+const flushAll = (request, response) => {
+    pool.query("TRUNCATE wind_data;", (error, results) => {
+        if (error) {
+            response.status(404).json({message: error}); 
+            throw error;
+        }
+        response.status(200).json(results.rows)
+    });
+}
+
 
 module.exports = {
     getAllDataFromDatabase,
     getLatestDataFromDatabase,
     postDataFromSource,
-    updateCurrentData,
-    flushOldData
+    flushOldData,
+    flushAll
 }

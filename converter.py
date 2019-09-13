@@ -7,8 +7,23 @@ import json
 #the information with the new data.
 
 #TODO: Need to get data live time
-url = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl?file=gfs.t06z.pgrb2.1p00.f006&leftlon=0&rightlon=360&toplat=90&bottomlat=-90&dir=%2Fgfs.20190902%2F06'
+noaa = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl'
+latLon = '&leftlon=0&rightlon=360&toplat=90&bottomlat=-90'
+#date format: <year><month><day>
+year = 2019
+month = 9
+day = 12
+#hour can be 00, 06, 12, or 18
+hour = 0
+#minute ranges from 000 to 384 (0 to 6.4 hours)
+minute = 360
+#file name format: gfs.t<hour>z.pgrb2.1p00.f<minute>
+fileName = 'gfs.t' + "{:02d}".format(hour) + 'z.pgrb2.1p00.f' + "{:03d}".format(minute)
+
+url = noaa + '?file=' + fileName + latLon + '&dir=%2Fgfs.' + str(year) + "{:02d}".format(month) + "{:02d}".format(day) + '%2F' + "{:02d}".format(hour)
 urllib.urlretrieve(url, './data/data.grb2')
+
+print('Success!')
 
 goToGrib2JSON = 'grib2json/target/grib2json-0.8.0-SNAPSHOT/bin'
 os.chdir(goToGrib2JSON)
@@ -31,11 +46,28 @@ os.system(convertForVComponent)
 goToData = '../../../../data'
 os.chdir(goToData)
 
+if minute >= 60:
+    addHours = minute / 60
+    minute = minute % 60
+else:
+    addHours = 0
+
+if addHours != 0: 
+    hour = hour + addHours
+
 with open("u_comp.json") as fo:
     data1 = json.load(fo)
 
+data1[0]['recordedTime'] = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + ' ' + "{:02d}".format(hour) + ':' + "{:02d}".format(minute) + ':00+00'
+with open("u_comp.json", "w") as fo:
+    json.dump(data1, fo)
+
 with open("v_comp.json") as fo:
     data2 = json.load(fo)
+
+data2[0]['recordedTime'] = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + ' ' + "{:02d}".format(hour) + ':' + "{:02d}".format(minute) + ':00+00'
+with open("v_comp.json", "w") as fo:
+    json.dump(data2, fo)
 
 data1.append(data2[0])
 

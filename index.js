@@ -20,8 +20,10 @@ app.get('/health', (request, response) => {
 })
 
 app.get('/data', db.getAllDataFromDatabase)
-app.get('/post_data', db.postDataFromSource)
-app.get('/latest', db.getLatestDataFromDatabase)
+app.post('/data', db.postDataFromSource)
+app.get('/data/latest', db.getLatestDataFromDatabase)
+app.delete('/data/old', db.flushOldData)
+app.delete('/data/all', db.flushAll)
 
 app.listen(port, () => {
     console.log(`App running on port ${port}.`)
