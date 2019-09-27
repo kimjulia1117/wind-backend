@@ -22,14 +22,17 @@ latLon = '&leftlon=0&rightlon=360&toplat=90&bottomlat=-90'
 year = current_datetime.year
 month = current_datetime.month
 day = current_datetime.day
-#hour can be 00, 06, 12, or 18
-refHour = (current_datetime.hour / 6) * 6
+#refHour can be 00, 06, 12, or 18
+refHour = ((current_datetime.hour / 6) * 6) - 6
 #recorded_hour ranges from 000 to 384 (0 to 16 days, every 3 hours)
-recorded_hour = (current_datetime.hour / 3) * 3
-#file name format: gfs.t<hour>z.pgrb2.1p00.f<recorded_hour>
-fileName = 'gfs.t' + "{:02d}".format(refHour) + 'z.pgrb2.1p00.f' + "{:03d}".format(recorded_hour)
+recorded_hour =  (current_datetime.hour / 3) * 3
+hourWithinRef = recorded_hour - refHour
+
+#file name format: gfs.t<hour>z.pgrb2.1p00.f<hourWithinRef>
+fileName = 'gfs.t' + "{:02d}".format(refHour) + 'z.pgrb2.1p00.f' + "{:03d}".format(hourWithinRef)
 
 url = noaa + '?file=' + fileName + latLon + '&dir=%2Fgfs.' + str(year) + "{:02d}".format(month) + "{:02d}".format(day) + '%2F' + "{:02d}".format(refHour)
+
 urllib.urlretrieve(url, './data/data.grb2')
 
 print('Retrieve data from NOAA: SUCESS!')
@@ -57,14 +60,14 @@ print('Converting from grib2 to json: SUCCESS!')
 goToData = '../../../../data'
 os.chdir(goToData)
 
-if recorded_hour >= 24:
-    addDay = recorded_hour / 24
-    recorded_hour = recorded_hour % 60
-else:
-    addDay = 0
+# if recorded_hour >= 24:
+#     addDay = recorded_hour / 24
+#     recorded_hour = recorded_hour % 60
+# else:
+#     addDay = 0
 
-if addDay != 0: 
-    day = day + addDay
+# if addDay != 0: 
+#     day = day + addDay
 
 with open("u_comp.json") as fo:
     data1 = json.load(fo)
