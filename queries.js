@@ -50,7 +50,6 @@ const getDataByDateTime = (request, response) => {
 }
 /*
  * Get data from online source and store into PostgreSQL database
- * TODO: Prevent duplicates from being stored into database
  */
 const postDataFromSource = (request, response) => {
     var fs = require("fs");
