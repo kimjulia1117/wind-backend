@@ -39,6 +39,15 @@ const getLatestDataFromDatabase = (request, response) => {
     });
 }
 
+const getDataByDateTime = (request, response) => {
+    const datetime = request.params.datetime
+    pool.query("SELECT * FROM wind_data WHERE recorded_time = $1", [datetime], (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(200).json(results.rows)
+    })
+}
 /*
  * Get data from online source and store into PostgreSQL database
  * TODO: Prevent duplicates from being stored into database
@@ -53,16 +62,6 @@ const postDataFromSource = (request, response) => {
         header = parseFile[i]["header"];
         dataArray = parseFile[i]["data"];
         recordedTime = parseFile[i]["recordedTime"];
-        pool.query("SELECT * FROM wind_data WHERE recorded_time = $1", [recordedTime], (error, result) => {
-            if (error){
-                response.status(404).json({message: error});
-                throw error;
-            } else {
-                if (result.rows.length == 2) {
-                    response.status(400).json({message: "Data already exists"})
-                }
-            }
-        })
 
         pool.query("INSERT INTO wind_data VALUES ($1, $2, $3)", [recordedTime, header, dataArray], (error, results) => {
             if (error) {
@@ -106,6 +105,7 @@ const flushAll = (request, response) => {
 module.exports = {
     getAllDataFromDatabase,
     getLatestDataFromDatabase,
+    getDataByDateTime,
     postDataFromSource,
     flushOldData,
     flushAll

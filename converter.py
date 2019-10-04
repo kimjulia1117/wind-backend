@@ -126,13 +126,18 @@ def getData(year, month, day, refHour):
             refHour = refHour - 6
             getData(year, month, day, refHour)
     else:
+        API_ENDPOINT = "http://localhost:3000/data/" + str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
+        r = requests.get(url = API_ENDPOINT)
+        if r.text != "[]":
+            print "Data already exists"
+            sys.exit()
         local = './data/data.grb2'
         dataPath = os.path.join(fdir, local)
         f = open(dataPath, "w")
         content = u.read()
         f.write(content)
         f.close()
-        print 'Downloading data: SUCESS!'
+        print 'Downloading data: SUCCESS!'
         convertData(year, month, day)
 
 getData(year, month, day, refHour)
