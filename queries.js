@@ -19,10 +19,10 @@ const pool = new Pool({
 const getAllDataFromDatabase = (request, response) => {
     pool.query('SELECT * FROM wind_data;', (error, results) => {
         if (error) {
-            response.status(404).json({message: error}) 
-            throw error
+            response.status(404).json({message: error}); 
+            throw error;
         }
-        response.status(200).json(results.rows)
+        response.status(200).json({count: results.rows.length, results: results.rows});
     });
 }
 
@@ -53,6 +53,16 @@ const postDataFromSource = (request, response) => {
         header = parseFile[i]["header"];
         dataArray = parseFile[i]["data"];
         recordedTime = parseFile[i]["recordedTime"];
+        pool.query("SELECT * FROM wind_data WHERE recorded_time = $1", [recordedTime], (error, result) => {
+            if (error){
+                response.status(404).json({message: error});
+                throw error;
+            } else {
+                if (result.rows.length == 2) {
+                    response.status(400).json({message: "Data already exists"})
+                }
+            }
+        })
 
         pool.query("INSERT INTO wind_data VALUES ($1, $2, $3)", [recordedTime, header, dataArray], (error, results) => {
             if (error) {
