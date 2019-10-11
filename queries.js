@@ -77,14 +77,13 @@ const postDataFromSource = (request, response) => {
  * To open up space, delete week old data from the PostgreSQL database
  */
 const flushOldData = (request, response) => {
-    pool.query("SELECT * FROM wind_data"), (error, results) => {
+    pool.query("DELETE from wind_data WHERE recorded_time < now() - interval '7 days'"), (error, results) => {
         if (error) {
             response.status(404).json({message: error}); 
             throw error;
         }
     }
-    //TODO: Determine when recorded_time is a week old or older, then delete
-    response.status(200).json("FLUSH OLD DATA: OK !");
+    response.status(200).json("FLUSH OLD DATA STATUS : OK !");
 }
 
 /*
