@@ -21,7 +21,6 @@ app.get('/health', (request, response) => {
 
 app.get('/data', db.getAllDataFromDatabase)
 app.post('/data', db.postDataFromSource)
-app.get('/data/:datetime', db.getDataByDateTime)
 app.get('/data/latest', db.getLatestDataFromDatabase)
 app.delete('/data/old', db.flushOldData)
 app.delete('/data/all', db.flushAll)

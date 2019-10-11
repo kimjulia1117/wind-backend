@@ -39,15 +39,6 @@ const getLatestDataFromDatabase = (request, response) => {
     });
 }
 
-const getDataByDateTime = (request, response) => {
-    const datetime = request.params.datetime
-    pool.query("SELECT * FROM wind_data WHERE recorded_time = $1", [datetime], (error, results) => {
-        if (error) {
-            throw error
-        }
-        response.status(200).json(results.rows)
-    })
-}
 /*
  * Get data from online source and store into PostgreSQL database
  */
@@ -103,7 +94,6 @@ const flushAll = (request, response) => {
 module.exports = {
     getAllDataFromDatabase,
     getLatestDataFromDatabase,
-    getDataByDateTime,
     postDataFromSource,
     flushOldData,
     flushAll
