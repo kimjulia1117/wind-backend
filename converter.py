@@ -15,6 +15,8 @@ import sys
 #Do this if the directory is not up 
 #Once the folder is up, get the equivalent timestamp for the new directory to get updated predictions
 
+# out = os.popen('echo $JAVA_HOME').read()
+# os.environ["JAVA_HOME"] = out
 current_datetime = datetime.datetime.utcnow()
 noaa = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl'
 latLon = '&leftlon=0&rightlon=360&toplat=90&bottomlat=-90'
@@ -32,6 +34,7 @@ def convertData(year, month, day):
     goToGrib2JSON = './grib2json/target/grib2json-0.8.0-SNAPSHOT/bin'
     gribPath = os.path.join(fdir, goToGrib2JSON)
     os.chdir(gribPath)
+    print("goToGrib2JSON path")
 
     #** will need to group the U and V data together by time or name of file **
     #(--fp) parameterNumber: 2 (U-component_of_wind)
@@ -81,6 +84,8 @@ def convertData(year, month, day):
 
 def getData(year, month, day, refHour):
     hourWithinRef = recorded_hour - refHour
+    if hourWithinRef < 0:
+        hourWithinRef = hourWithinRef * (-1)
     #file name format: gfs.t<hour>z.pgrb2.1p00.f<hourWithinRef>
     fileName = 'gfs.t' + "{:02d}".format(refHour) + 'z.pgrb2.1p00.f' + "{:03d}".format(hourWithinRef)
     print "Attempt to download: " + fileName
@@ -89,7 +94,7 @@ def getData(year, month, day, refHour):
     try:
         u = urllib2.urlopen(url)
     except urllib2.URLError, e:
-        print e.code
+        print e
         if refHour == 0:
             if month == 1 and day == 1:
                 year = year - 1
@@ -126,7 +131,9 @@ def getData(year, month, day, refHour):
             refHour = refHour - 6
             getData(year, month, day, refHour)
     else:
-        API_ENDPOINT = "http://localhost:3000/data/" + str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
+        datetimeFormat = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
+        print datetimeFormat
+        API_ENDPOINT = "http://localhost:3000/data/" + datetimeFormat
         r = requests.get(url = API_ENDPOINT)
         if r.text != "[]":
             print "Data already exists"
