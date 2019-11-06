@@ -3,7 +3,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'postgres',
-    password: 'v9BbsE7wLaF9Nw9A',
+    password: 'vKN7N-aYn$Yfbp7',
     port: 5432,
 })
 
@@ -72,31 +72,6 @@ const postDataFromSource = (request, response) => {
         });
     }
     response.status(200).json("POST DATA FROM SOURCE STATUS : OK !");
-}
-
-/*
- * TODO: Update 6 hour interval data to the latest one
- * 6 hour interval data are usually not readily available and is taken
- * from the predicted data
- */
-const updateData = (request, response) => {
-    var fs = require("fs");
-    var content = String(fs.readFileSync("./data/wind_data.json"));
-
-    parseFile = JSON.parse(content);
-
-    for(var i = 0; i < parseFile.length; i++) {
-        header = parseFile[i]["header"];
-        dataArray = parseFile[i]["data"];
-        recordedTime = parseFile[i]["recordedTime"];
-
-        pool.query('UPDATE wind_data SET header = $1, data = $2 WHERE recorded_time = $3', [header, dataArray, recordedTime], (error, results) => {
-            if (error) {
-              throw error
-            }
-            response.status(200).json(results.rows)
-          })
-    }
 }
 
 /*
