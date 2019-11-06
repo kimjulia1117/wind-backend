@@ -106,7 +106,6 @@ module.exports = {
     getLatestDataFromDatabase,
     getDataByRecordedTime,
     postDataFromSource,
-    updateData,
     flushOldData,
     flushAll
 }

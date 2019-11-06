@@ -23,7 +23,6 @@ app.get('/data', db.getAllDataFromDatabase)
 app.post('/data', db.postDataFromSource)
 app.get('/data/latest', db.getLatestDataFromDatabase)
 app.get('/data/:recorded_time', db.getDataByRecordedTime)
-app.put('/data/:recorded_time', db.updateData)
 app.delete('/data/old', db.flushOldData)
 app.delete('/data/all', db.flushAll)
 
