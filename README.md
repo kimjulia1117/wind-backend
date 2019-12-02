@@ -29,8 +29,7 @@ Helpful links:
 - NOTE: The grib2json file uses $JAVA_HOME so make sure you have that set up to wherever your Java is installed in.
 
 5. Make sure that you have these 2 crontabs:
-- For MacOS, I used the command “crontab -e” to insert in my crontabs to run the converter.py and the deleteOld.py scripts
-- For testing purposes, I have it running every 5 minutes (does NOT mean it is getting live time data in 5 minute intervals, it just means that it is attempting to get the latest data available every 5 minutes in case if one of the previous times the script tries to run fails for whatever reason)
+- For MacOS, use the command ```crontab -e``` to insert in the crontabs to run the converter.py and the deleteOld.py scripts
 - For example:
 ```*/5 * * * * python ~/projects/wind-backend/converter.py```
 ```*/5 * * * * python ~/projects/wind-backend/deleteOld.py```
