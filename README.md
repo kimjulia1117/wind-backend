@@ -32,8 +32,8 @@ Helpful links:
 - For MacOS, I used the command “crontab -e” to insert in my crontabs to run the converter.py and the deleteOld.py scripts
 - For testing purposes, I have it running every 5 minutes (does NOT mean it is getting live time data in 5 minute intervals, it just means that it is attempting to get the latest data available every 5 minutes in case if one of the previous times the script tries to run fails for whatever reason)
 - For example:
-- ```*/5 * * * * python ~/projects/wind-backend/converter.py```
-- ```*/5 * * * * python ~/projects/wind-backend/deleteOld.py```
+```*/5 * * * * python ~/projects/wind-backend/converter.py```
+```*/5 * * * * python ~/projects/wind-backend/deleteOld.py```
 
 6. Run the API by doing ```node index.js```
 
