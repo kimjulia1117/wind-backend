@@ -31,8 +31,8 @@ Helpful links:
 5. Make sure that you have these 2 crontabs:
 - For MacOS, use the command ```crontab -e``` to insert in the crontabs to run the converter.py and the deleteOld.py scripts
 - For example:
-  ```*/5 * * * * python ~/projects/wind-backend/converter.py```
-  ```*/5 * * * * python ~/projects/wind-backend/deleteOld.py```
+```*/5 * * * * python ~/projects/wind-backend/converter.py
+*/5 * * * * python ~/projects/wind-backend/deleteOld.py```
 
 6. Run the API by doing ```node index.js```
 
