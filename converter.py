@@ -30,7 +30,7 @@ refHour = ((current_datetime.hour / 6) * 6)
 recorded_hour = (current_datetime.hour / 3) * 3
 fdir = os.path.abspath(os.path.dirname(__file__))
 
-def convertData(year, month, day):
+def convertData(year, month, day, refHour):
     goToGrib2JSON = './grib2json/target/grib2json-0.8.0-SNAPSHOT/bin'
     gribPath = os.path.join(fdir, goToGrib2JSON)
     os.chdir(gribPath)
@@ -41,9 +41,6 @@ def convertData(year, month, day):
     #				         3 (V-component_of_wind)
     #(--fs) Height level above ground => surface1Type: 103
     #(--fv) surface1Value: 10.0
-
-    #Note: If data failed to convert, maybe have it go into an ongoing loop
-    #for every 10 seconds (more or less) or keep going with the future incoming data?
 
     convertForUComponent = 'sh grib2json --names --data --fp 2 --fs 103 --fv 10.0 --output ../../../../data/u_comp.json ../../../../data/data.grb2'
     os.system(convertForUComponent)
@@ -59,14 +56,19 @@ def convertData(year, month, day):
     with open("u_comp.json") as fo:
         data1 = json.load(fo)
 
-    data1[0]['recordedTime'] = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+    if refHour == 18:
+        storeRecordedDay = current_datetime.day
+        storeRecordedMonth = current_datetime.month
+        storeRecordedYear = current_datetime.year
+    
+    data1[0]['recordedTime'] = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
     with open("u_comp.json", "w") as fo:
         json.dump(data1, fo)
 
     with open("v_comp.json") as fo:
         data2 = json.load(fo)
 
-    data2[0]['recordedTime'] = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+    data2[0]['recordedTime'] = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
     with open("v_comp.json", "w") as fo:
         json.dump(data2, fo)
 
@@ -83,7 +85,9 @@ def convertData(year, month, day):
     print(r.text)
 
 def getData(year, month, day, refHour):
+    #Get the hour within reference hour (ex: recorded hour = 3, ref hour = 0)
     hourWithinRef = recorded_hour - refHour
+    #Absolute value of hour within ref value
     if hourWithinRef < 0:
         hourWithinRef = hourWithinRef * (-1)
     #file name format: gfs.t<hour>z.pgrb2.1p00.f<hourWithinRef>
@@ -93,45 +97,86 @@ def getData(year, month, day, refHour):
 
     try:
         u = urllib2.urlopen(url)
+    #The ref hour directory not available, access the previous ref hour directory
     except urllib2.URLError, e:
         print e
+        #If reference hour is midnight
         if refHour == 0:
+            #If first day of the January
             if month == 1 and day == 1:
+                #Go back a year
                 year = year - 1
+                #Go back a month
                 month = 12
+                #Go back a day
                 day = 31
+                #Ref hour to be 6 hours before midnight
                 refHour = 18
+                #Get data
                 getData(year, month, day, refHour)
+            #If previous month has 30 days and current day is the first day of the current month
             elif (month == 5 or month == 7 or month == 8 or month == 10 or month == 12) and day == 1:
+                #Go back a month
                 month = month - 1
+                #Go back a day
                 day = 30
+                #Ref hour to be 6 hours before midnight
                 refHour = 18
+                #Get data
                 getData(year, month, day, refHour)
+            #If current month is March and first day of the month
             elif month == 3 and day == 1:
+                #If leap year
                 if year % 4 == 0:
+                    #Go back a month
                     month = month - 1
+                    #Go back a day
                     day = 29
+                    #Ref hour to be 6 hours before midnight
                     refHour = 18
+                    #Get data
                     getData(year, month, day, refHour)
+                #If not leap year
                 else:
+                    #Go back a month
                     month = month - 1
+                    #Go back a day
                     day = 28
+                    #Ref hour to be 6 hours before midnight
                     refHour = 18
+                    #Get data
                     getData(year, month, day, refHour)
+            #If previous month has 31 days and it's the first day of the current month
             elif (month == 2 or month == 4 or month == 6 or month == 9 or month == 11) and day == 1:
+                #Go back a month
                 month = month - 1
+                #Go back a day
                 day = 31
+                #Ref hour to be 6 hours before midnight
                 refHour = 18
+                #Get data
                 getData(year, month, day, refHour)
+            #If not beginning of a month
             else:
+                #Go baack a day
                 day = day - 1
+                #Ref hour to be 6 hours before midnight
                 refHour = 18
+                #Get data
                 getData(year, month, day, refHour)
+        #If not midnight
         else:    
+            #Ref hour to be 6 hours before current ref hour
             refHour = refHour - 6
+            #Get data
             getData(year, month, day, refHour)
+    #Ref hour directory available
     else:
-        datetimeFormat = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
+        if refHour == 18:
+            storeRecordedDay = current_datetime.day
+            storeRecordedMonth = current_datetime.month
+            storeRecordedYear = current_datetime.year
+        datetimeFormat = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
         print datetimeFormat
         API_ENDPOINT = "http://localhost:3000/data/" + datetimeFormat
         r = requests.get(url = API_ENDPOINT)
@@ -145,6 +190,6 @@ def getData(year, month, day, refHour):
         f.write(content)
         f.close()
         print 'Downloading data: SUCCESS!'
-        convertData(year, month, day)
+        convertData(year, month, day, refHour)
 
 getData(year, month, day, refHour)
