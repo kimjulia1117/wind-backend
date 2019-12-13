@@ -17,3 +17,22 @@ Helpful links:
 - https://blog.logrocket.com/setting-up-a-restful-api-with-node-js-and-postgresql-d96d6fc892d8/
 - https://github.com/newsdev/simple-wind
 - https://github.com/danwild/wind-js-server
+
+# How to set it up
+1. Download PostgreSQL. After downloading the whole package, there is a SQL Shell that you can use (psql). There, you put in the information to get into the database, which is what is going on in the beginning of the queries.js file.
+
+2. Replace the empty grib2json file with the grib2json repo (https://github.com/cambecc/grib2json).
+
+3. Go into the grib2json directory and type ```mvn package``` (you may need to install the mvn command)
+
+4. Go into the target directory within the grib2json directory. There should be a “grib2json-0.8.0-SNAPSHOT.tar.gz” file. Gunzip/tar the file.
+- NOTE: The grib2json file uses $JAVA_HOME so make sure you have that set up to wherever your Java is installed in.
+
+5. Make sure that you have these 2 crontabs:
+- For MacOS, use the command ```crontab -e``` to insert in the crontabs to run the converter.py and the deleteOld.py scripts
+- For example:
+```*/5 * * * * python ~/projects/wind-backend/converter.py``` ```*/5 * * * * python ~/projects/wind-backend/deleteOld.py```
+
+6. Run the API by doing ```node index.js```
+
+7. The API uses port 3000. To see the list of routes, refer to routes.js.
