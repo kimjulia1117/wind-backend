@@ -49,6 +49,28 @@ const getDataByRecordedTime = (request, response) => {
       response.status(200).json(results.rows)
     })
 }
+
+const updateData = (request, response) => {
+    var fs = require("fs");
+    var content = String(fs.readFileSync("./data/wind_data.json"));
+
+    parseFile = JSON.parse(content);
+
+    for(var i = 0; i < parseFile.length; i++) {
+        header = parseFile[i]["header"];
+        dataArray = parseFile[i]["data"];
+        recordedTime = parseFile[i]["recordedTime"];
+
+        pool.query('UPDATE wind_data SET header = $1, data = $2 WHERE recorded_time = $3', [header, dataArray, recordedTime], (error, results) => {
+            if (error) {
+                response.status(404).json({message: error});
+                throw error;
+            }
+        });
+    }
+    response.status(200).json("UPDATE DATA STATUS : OK !");
+}
+
 /*
  * Get data from online source and store into PostgreSQL database
  */
@@ -105,6 +127,7 @@ module.exports = {
     getAllDataFromDatabase,
     getLatestDataFromDatabase,
     getDataByRecordedTime,
+    updateData,
     postDataFromSource,
     flushOldData,
     flushAll

@@ -15,8 +15,6 @@ import sys
 #Do this if the directory is not up 
 #Once the folder is up, get the equivalent timestamp for the new directory to get updated predictions
 
-# out = os.popen('echo $JAVA_HOME').read()
-# os.environ["JAVA_HOME"] = out
 current_datetime = datetime.datetime.utcnow()
 noaa = 'https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_1p00.pl'
 latLon = '&leftlon=0&rightlon=360&toplat=90&bottomlat=-90'
@@ -30,7 +28,7 @@ refHour = ((current_datetime.hour / 6) * 6)
 recorded_hour = (current_datetime.hour / 3) * 3
 fdir = os.path.abspath(os.path.dirname(__file__))
 
-def convertData(year, month, day, refHour):
+def convertData(year, month, day, refHour, needUpdate):
     goToGrib2JSON = './grib2json/target/grib2json-0.8.0-SNAPSHOT/bin'
     gribPath = os.path.join(fdir, goToGrib2JSON)
     os.chdir(gribPath)
@@ -57,18 +55,27 @@ def convertData(year, month, day, refHour):
         data1 = json.load(fo)
 
     if refHour == 18:
-        storeRecordedDay = current_datetime.day
-        storeRecordedMonth = current_datetime.month
-        storeRecordedYear = current_datetime.year
-    
-    data1[0]['recordedTime'] = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+        storeRecordedDay = datetime.datetime.utcnow().day
+        storeRecordedMonth = datetime.datetime.utcnow().month
+        storeRecordedYear = datetime.datetime.utcnow().year
+        data1[0]['recordedTime'] = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+    else:
+        data1[0]['recordedTime'] = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+
     with open("u_comp.json", "w") as fo:
         json.dump(data1, fo)
 
     with open("v_comp.json") as fo:
         data2 = json.load(fo)
 
-    data2[0]['recordedTime'] = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+    if refHour == 18:
+        storeRecordedDay = datetime.datetime.utcnow().day
+        storeRecordedMonth = datetime.datetime.utcnow().month
+        storeRecordedYear = datetime.datetime.utcnow().year  
+        data2[0]['recordedTime'] = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+    else:
+        data2[0]['recordedTime'] = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + ' ' + "{:02d}".format(recorded_hour) + ':00:00+00'
+
     with open("v_comp.json", "w") as fo:
         json.dump(data2, fo)
 
@@ -80,7 +87,10 @@ def convertData(year, month, day, refHour):
     print('Storing data onto files: SUCCESS!')
 
     API_ENDPOINT = "http://localhost:3000/data"
-    r = requests.post(url = API_ENDPOINT)
+    if needUpdate == True:
+        r = requests.put(url = API_ENDPOINT)
+    else:
+        r = requests.post(url = API_ENDPOINT)
 
     print(r.text)
 
@@ -173,16 +183,28 @@ def getData(year, month, day, refHour):
     #Ref hour directory available
     else:
         if refHour == 18:
-            storeRecordedDay = current_datetime.day
-            storeRecordedMonth = current_datetime.month
-            storeRecordedYear = current_datetime.year
-        datetimeFormat = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
+            storeRecordedDay = datetime.datetime.utcnow().day
+            storeRecordedMonth = datetime.datetime.utcnow().month
+            storeRecordedYear = datetime.datetime.utcnow().year
+            datetimeFormat = str(storeRecordedYear) + '-' + "{:02d}".format(storeRecordedMonth) + '-' + "{:02d}".format(storeRecordedDay) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
+        else:
+            datetimeFormat = str(year) + '-' + "{:02d}".format(month) + '-' + "{:02d}".format(day) + 'T' + "{:02d}".format(recorded_hour) + ':00:00.000Z'
         print datetimeFormat
         API_ENDPOINT = "http://localhost:3000/data/" + datetimeFormat
-        r = requests.get(url = API_ENDPOINT)
-        if r.text != "[]":
+        r = urllib2.urlopen(API_ENDPOINT)
+        x = json.load(r)
+        needUpdate = False
+        if len(x) != 0:
             print "Data already exists"
-            sys.exit()
+            storedRefTime = x[0]['header']['refTime']
+            date_time_obj = datetime.datetime.strptime(storedRefTime, '%Y-%m-%dT%H:%M:%S.%fZ')
+            storedRefTimeHour = date_time_obj.time().hour
+            if (storedRefTimeHour < refHour) or (storedRefTimeHour == 18 and refHour == 0):
+                needUpdate = True
+            else:
+                r.close()
+                sys.exit()
+        r.close()
         local = './data/data.grb2'
         dataPath = os.path.join(fdir, local)
         f = open(dataPath, "w")
@@ -190,6 +212,6 @@ def getData(year, month, day, refHour):
         f.write(content)
         f.close()
         print 'Downloading data: SUCCESS!'
-        convertData(year, month, day, refHour)
+        convertData(year, month, day, refHour, needUpdate)
 
 getData(year, month, day, refHour)

@@ -10,6 +10,11 @@ app.use(
         extended: true,
     })
 )
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 app.get('/', (request, response) => {
     response.json({info: 'Node.js, Express, and Postgres API' })
@@ -21,6 +26,7 @@ app.get('/health', (request, response) => {
 
 app.get('/data', db.getAllDataFromDatabase)
 app.post('/data', db.postDataFromSource)
+app.put('/data', db.updateData)
 app.get('/data/latest', db.getLatestDataFromDatabase)
 app.get('/data/:recorded_time', db.getDataByRecordedTime)
 app.delete('/data/old', db.flushOldData)
